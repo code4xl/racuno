@@ -1,0 +1,14 @@
+fastapi #original
+uvicorn #original
+langchain-community #original
+langchain-huggingface #original
+openai #original
+faiss-cpu #original
+PyMuPDF #original
+python-docx #original
+requests #original
+python-dotenv #original
+google-generativeai #original
+sentence-transformers #original
+bs4 #original
+huggingface-hub #original
