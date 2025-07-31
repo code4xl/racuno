@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Header, HTTPException, Request
 from app.models import QueryRequest, QueryResponse
-from app.processor import extract_text_from_url, chunk_text
-from app.embedder import embed_chunks
+from app.processor import extract_text_from_url, chunk_text, chunk_text_parallel
+from app.embedder import embed_chunks, embed_chunks_parallel
 from app.retriever import get_similar_contexts
 from app.llm_reasoner import generate_batch_answer
 from app.cache_manager import load_vector_store_if_exists, save_vector_store
@@ -156,8 +156,10 @@ async def run_query(req: QueryRequest):
     else:
         print("📥 Downloading and embedding new document.")
         raw_text = extract_text_from_url(req.documents)
-        chunks = chunk_text(raw_text)
-        db = embed_chunks(chunks)
+        # chunks = chunk_text(raw_text)
+        chunks = chunk_text_parallel(raw_text, num_threads=4)
+        # db = embed_chunks(chunks)
+        db = embed_chunks_parallel(chunks, batch_size=50, num_threads=4)
         save_vector_store(db, req.documents)
 
     # Batch Question Processing
