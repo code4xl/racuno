@@ -27,7 +27,7 @@ def generate_batch_answer(
             f"Context {idx}:\n{ctx_text}\n\n"
         )
     prompt += (
-        "You are a specialist in insurance policy language. I will give you a list of questions and their raw answers. For each question, produce:1. a concise, precise “refined_answer” that uses exact numbers, terms, and conditions;  2. a “keywords” list of 3–5 short phrases capturing the core concepts;"
+        "You are a specialist in insurance, legal, HR, and compliance domains language. I will give you a list of questions and their raw answers. For each question, produce:1. a concise, precise “refined_answer” that uses exact numbers, terms, and conditions;  2. a “keywords” list of 3–5 short phrases capturing the core concepts;"
         "Please **only** return a JSON object with this schema:\n"
         '{"answers": ["Answer to Q1", "Answer to Q2", ...]}\n'
         "Do not include any additional text, explanation, or formatting."
@@ -56,6 +56,20 @@ def generate_batch_answer(
     except Exception as e:
         print("Gemini batch error:", e, "| raw response:", raw[:200])
         # 5) Fallback: split by markers in the raw text
+        try:
+            payload = json.loads(json_str)
+            if 'answers' in payload and isinstance(payload['answers'], list):
+                print("🔄 Found valid answers in payload despite error, using them")
+                answers = payload['answers']
+                # Ensure we have the right number of answers
+                while len(answers) < len(questions):
+                    answers.append("❌ Error")
+                return [str(a).strip() for a in answers[:len(questions)]]
+        except:
+            pass
+            
+        # 6) Fallback: split by markers in the raw text
+        print("🔄 Using fallback parsing method")
         fallback = []
         for i in range(1, len(questions) + 1):
             marker = f"Answer {i}:"
